@@ -1,77 +1,97 @@
-DROP DATABASE IF EXISTS arepas_aparicio;
-CREATE DATABASE arepas_aparicio;
-USE arepas_aparicio;
+-- Base de datos
+CREATE DATABASE IF NOT EXISTS tienda_arepas;
+USE tienda_arepas;
 
--- Tabla de clientes
+-- Tabla 1: Cliente
 CREATE TABLE cliente (
-    id_cliente INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100),
-    email VARCHAR(150) UNIQUE,
-    telefono VARCHAR(20)
+  id_cliente INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100),
+  telefono VARCHAR(20),
+  direccion VARCHAR(255),
+  correo VARCHAR(100)
 );
 
--- Tabla de productos (ej. arepas rellenas, combos, bebidas, etc.)
+-- Tabla 2: Producto
 CREATE TABLE producto (
-    id_producto INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100),
-    descripcion TEXT,
-    precio DECIMAL(10,2)
+  id_producto INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100),
+  descripcion TEXT,
+  precio_unitario DECIMAL(10,2)
 );
 
--- Tabla de ingredientes
-CREATE TABLE ingrediente (
-    id_ingrediente INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100),
-    unidad_medida VARCHAR(50)
+-- Tabla 3: Venta
+CREATE TABLE venta (
+  id_venta INT AUTO_INCREMENT PRIMARY KEY,
+  fecha DATE,
+  id_cliente INT,
+  total_venta DECIMAL(10,2),
+  FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente)
 );
 
--- Tabla de proveedores
-CREATE TABLE proveedor (
-    id_proveedor INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100),
-    contacto VARCHAR(150)
-);
-
--- Precios de ingredientes según proveedor
-CREATE TABLE precio_ingrediente (
-    id_precio_ingrediente INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    id_ingrediente INT,
-    id_proveedor INT,
-    precio_unitario DECIMAL(10,2),
-    fecha_registro DATE,
-    FOREIGN KEY (id_ingrediente) REFERENCES ingrediente(id_ingrediente),
-    FOREIGN KEY (id_proveedor) REFERENCES proveedor(id_proveedor)
-);
-
--- Relación muchos a muchos entre producto e ingrediente
-CREATE TABLE producto_ingrediente (
-    id_producto_ingrediente INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    id_producto INT,
-    id_ingrediente INT,
-    cantidad_usada DECIMAL(10,2),
-    FOREIGN KEY (id_producto) REFERENCES producto(id_producto),
-    FOREIGN KEY (id_ingrediente) REFERENCES ingrediente(id_ingrediente)
-);
-
--- Tabla de movimientos de caja (ingresos/ventas)
-CREATE TABLE movimiento_caja (
-    id_movimiento INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    tipo_movimiento ENUM('VENTA', 'GASTO') NOT NULL,
-    monto DECIMAL(10,2),
-    descripcion TEXT,
-    fecha_movimiento DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
--- Tabla puente que relaciona ventas específicas con productos y clientes
+-- Tabla 4: Detalle_Venta
 CREATE TABLE detalle_venta (
-    id_detalle_venta INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    id_movimiento INT,
-    id_cliente INT,
-    id_producto INT,
-    cantidad INT,
-    precio_unitario DECIMAL(10,2),
-    fecha_venta DATE,
-    FOREIGN KEY (id_movimiento) REFERENCES movimiento_caja(id_movimiento),
-    FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente),
-    FOREIGN KEY (id_producto) REFERENCES producto(id_producto)
+  id_detalle INT AUTO_INCREMENT PRIMARY KEY,
+  id_venta INT,
+  id_producto INT,
+  cantidad INT,
+  subtotal DECIMAL(10,2),
+  FOREIGN KEY (id_venta) REFERENCES venta(id_venta),
+  FOREIGN KEY (id_producto) REFERENCES producto(id_producto)
+);
+
+-- Tabla 5: Caja
+CREATE TABLE caja (
+  id_movimiento INT AUTO_INCREMENT PRIMARY KEY,
+  fecha DATE,
+  tipo_movimiento ENUM('Ingreso', 'Egreso'),
+  descripcion TEXT,
+  monto DECIMAL(10,2)
+);
+
+-- Tabla 6: Ingrediente
+CREATE TABLE ingrediente (
+  id_ingrediente INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100),
+  unidad_medida VARCHAR(20)
+);
+
+-- Tabla 7: Proveedor
+CREATE TABLE proveedor (
+  id_proveedor INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100),
+  telefono VARCHAR(20),
+  correo VARCHAR(100)
+);
+
+-- Tabla 8: Ingrediente_Proveedor
+CREATE TABLE ingrediente_proveedor (
+  id_ing_prov INT AUTO_INCREMENT PRIMARY KEY,
+  id_ingrediente INT,
+  id_proveedor INT,
+  precio_unitario DECIMAL(10,2),
+  FOREIGN KEY (id_ingrediente) REFERENCES ingrediente(id_ingrediente),
+  FOREIGN KEY (id_proveedor) REFERENCES proveedor(id_proveedor)
+);
+
+-- Tabla 9: Producto_Ingrediente
+CREATE TABLE producto_ingrediente (
+  id_producto_ingrediente INT AUTO_INCREMENT PRIMARY KEY,
+  id_producto INT,
+  id_ingrediente INT,
+  cantidad_usada DECIMAL(10,2),
+  FOREIGN KEY (id_producto) REFERENCES producto(id_producto),
+  FOREIGN KEY (id_ingrediente) REFERENCES ingrediente(id_ingrediente)
+);
+
+-- Tabla 10: Transaccion
+CREATE TABLE transaccion (
+  id_transaccion INT AUTO_INCREMENT PRIMARY KEY,
+  fecha DATE,
+  id_movimiento INT,
+  id_producto INT,
+  cantidad INT,
+  precio_unitario DECIMAL(10,2),
+  subtotal DECIMAL(10,2),
+  FOREIGN KEY (id_movimiento) REFERENCES caja(id_movimiento),
+  FOREIGN KEY (id_producto) REFERENCES producto(id_producto)
 );
